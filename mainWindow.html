@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Invictus Entry App</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header id="header">
+      <h1 class="brand center">Invictus Task</h1>
+    </header>
+    <div class="wrapper">
+      <ul class="list"></ul>
+    </div>
+
+    <footer>
+      <p class="center">Built by Justin Haney 2019</p>
+    </footer>
+    <script>
+      const electron = require("electron");
+      const { ipcRenderer } = electron;
+      const ul = document.querySelector("ul");
+      let data = localStorage.getItem("entries");
+
+      let entries = JSON.parse(data) || [];
+
+      // if (localStorage.getItem("entries") !== null) {
+      //   entries = localStorage.getItem("entries");
+
+      // }
+
+      //add entry
+      ipcRenderer.on("entries:add", function(e, entry) {
+        entries.push(entry);
+
+        const li = document.createElement("li");
+        const entryText = document.createTextNode(entry);
+
+        localStorage.setItem("entries", JSON.stringify(entries));
+        populateList(entries, ul);
+      });
+
+      //clear entrys
+      ipcRenderer.on("entries:clear", function() {
+        ul.innerHTML = "";
+        localStorage.removeItem("entries");
+      });
+
+      //remove entry
+      ul.addEventListener("click", toggleDone);
+      ul.addEventListener("dblclick", removeEntry);
+      function toggleDone(e) {
+        // e.target.remove();
+        if (!e.target.matches("li")) return;
+        const el = e.target;
+        const index = el.dataset.index;
+        entries[index].done = !entries[index].done;
+
+        localStorage.setItem("entries", JSON.stringify(entries));
+        populateList(entries, ul);
+      }
+      function removeEntry(e) {
+        if (!e.target.matches("span")) return;
+        const el = e.target;
+        const id = el.parentElement.dataset.id;
+
+        const filteredEntries = entries.filter(
+          entry => entry.id !== parseFloat(id)
+        );
+        localStorage.setItem("entries", JSON.stringify(filteredEntries));
+
+        location.reload();
+      }
+
+      function populateList(allEntries = [], entryList) {
+        entryList.innerHTML = allEntries
+          .map((entry, index) => {
+            return `
+            <li data-index=${index} data-id=${entry.id} id='entry${index}' ${
+              entry.done ? 'class="completed"' : null
+            }>
+              ${entry.text}<span class="close">X</span>
+            </li>
+          `;
+          })
+          .join("");
+      }
+      populateList(entries, ul);
+    </script>
+  </body>
+</html>

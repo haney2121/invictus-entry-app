@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>New | Invictus Entry App</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header id="header">
+      <h1 class="entryBrand center">Add New Entry</h1>
+    </header>
+    <div class="container">
+      <form>
+        <div>
+          <input type="text" id="entry" autofocus />
+        </div>
+        <button class="effect" type="submit">Add Entry</button>
+      </form>
+    </div>
+    <script>
+      const electron = require("electron");
+      const { ipcRenderer } = electron;
+
+      const form = document.querySelector("form");
+      form.addEventListener("submit", submitForm);
+
+      function submitForm(e) {
+        e.preventDefault();
+        const text = document.getElementById("entry").value;
+        const entry = { text, done: false, id: Date.now() };
+        ipcRenderer.send("entries:add", entry);
+      }
+    </script>
+  </body>
+</html>
